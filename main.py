@@ -1,9 +1,13 @@
 import storage
+import os
 import tasks as task_ops
 import categories as cat_ops
 import activity
 from datetime import datetime
 
+def setup_folders():
+    os.makedirs("data", exist_ok=True)
+    os.makedirs("backups", exist_ok=True)
 def display_summary(tasks):
     today = datetime.now().strftime("%Y-%m-%d")
     due_today = [t for t in tasks if t.get('due_date') == today and t['status'] != 'Completed']
@@ -102,6 +106,5 @@ def main():
             storage.backup_state("data", "backups")
             print("💾 Data backed up. Goodbye!")
             break
-
 if __name__ == "__main__":
     main()
