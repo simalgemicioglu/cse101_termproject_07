@@ -3,45 +3,48 @@ import os
 import shutil
 from datetime import datetime
 
-TASK_FILE = "data/tasks.json"
-CATEGORY_FILE = "data/categories.json"
-ACTIVITY_LOG = "data/activity.log"
-BACKUP_DIR = "backups/"
+TASK_FILENAME = "tasks.json"
+CATEGORY_FILENAME = "categories.json"
+LOG_FILENAME = "activity.log"
 
-def load_state(base_dir: str = "data") -> tuple[list, list, list]:
-    tasks = _load_json(os.path.join(base_dir, "tasks.json"))
-    categories = _load_json(os.path.join(base_dir, "categories.json"))
+def load_state(base_dir: str) -> tuple[list, list, list]:
+    """Tüm sistem verilerini yükler."""
+    tasks_path = os.path.join(base_dir, TASK_FILENAME)
+    cats_path = os.path.join(base_dir, CATEGORY_FILENAME)
+    log_path = os.path.join(base_dir, LOG_FILENAME)
     
-    activity_log = [] 
-    log_path = os.path.join(base_dir, "activity.log")
+    tasks = _load_json(tasks_path)
+    categories = _load_json(cats_path)
+    
+    activity_log = []
     if os.path.exists(log_path):
         with open(log_path, "r", encoding="utf-8") as f:
-            activity_log = [line.strip() for line in f.readlines() if line.strip()]
+            activity_log = [line.strip() for line in f.readlines()]
             
     return tasks, categories, activity_log
 
 def save_state(base_dir: str, tasks: list, categories: list, activity_log: list) -> None:
-    _save_json(os.path.join(base_dir, "tasks.json"), tasks)
-    _save_json(os.path.join(base_dir, "categories.json"), categories)
+    os.makedirs(base_dir, exist_ok=True)
     
-    log_path = os.path.join(base_dir, "activity.log")
-    with open(log_path, "w", encoding="utf-8") as f:
-        for line in activity_log:
-            f.write(line + "\n")
+    _save_json(os.path.join(base_dir, TASK_FILENAME), tasks)
+    _save_json(os.path.join(base_dir, CATEGORY_FILENAME), categories)
+    
+    with open(os.path.join(base_dir, LOG_FILENAME), "w", encoding="utf-8") as f:
+        for entry in activity_log:
+            f.write(f"{entry}\n")
 
-def backup_state(base_dir: str, backup_dir: str) -> str:
+def backup_state(base_dir: str, backup_dir: str) -> list[str]:
     os.makedirs(backup_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_filename = f"backup_{timestamp}"
-    backup_full_path = os.path.join(backup_dir, backup_filename)
-    return shutil.make_archive(backup_full_path, 'zip', base_dir)
-
-
+    backup_path = os.path.join(backup_dir, f"backup_{timestamp}")
+    
+    zip_path = shutil.make_archive(backup_path, 'zip', base_dir)
+    return [zip_path]
 
 def validate_task_schema(tasks: list) -> bool:
-    required = ["id", "title", "status", "priority"]
+    required_fields = ["id", "title", "status", "priority", "category"]
     for task in tasks:
-        if not all(field in task for field in required):
+        if not all(field in task for field in required_fields):
             return False
     return True
 
@@ -50,8 +53,8 @@ def _load_json(filepath: str) -> list:
         return []
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
-            return json.loads(content) if content else []
+            data = json.load(f)
+            return data if isinstance(data, list) else []
     except (json.JSONDecodeError, FileNotFoundError):
         return []
 
