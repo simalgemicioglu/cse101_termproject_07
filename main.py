@@ -8,19 +8,32 @@ from datetime import datetime
 def setup_folders():
     os.makedirs("data", exist_ok=True)
     os.makedirs("backups", exist_ok=True)
-def display_summary(tasks):
-    today = datetime.now().strftime("%Y-%m-%d")
-    due_today = [t for t in tasks if t.get('due_date') == today and t['status'] != 'Completed']
-    
-    print("\n" + "="*45)
-    print(f"📅 WELCOME! Today's Date: {today}")
-    if due_today:
-        print(f"🔔 You have {len(due_today)} task(s) due today!")
-    else:
-        print("✅ No urgent tasks for today.")
-    print("="*45)
 
 def main():
+    setup_folders()
+    all_tasks, all_cats, activity_log = storage.load_state("data")
+    overdue_tasks = task_ops.check_overdue_tasks(all_tasks)
+    display_summary(all_tasks, overdue_tasks) 
+
+def display_summary(tasks, overdue_tasks):
+    today = datetime.now().strftime("%Y-%m-%d")
+    due_today = [t for t in tasks if t.get('due_date') == today and t['status'] != 'Completed']
+    print("\n" + "="*50)
+    print(f"📅 WELCOME! Today's Date: {today}")
+    print("-" * 50)
+    if due_today:
+        print(f"🔔 NOTIFICATION: You have {len(due_today)} task(s) due today!")
+    if overdue_tasks:
+        print(f"⚠️  WARNING: {len(overdue_tasks)} overdue task(s) detected!")
+        for ot in overdue_tasks:
+            print(f"   - [ID: {ot['id']}] {ot['title']} (Due: {ot['due_date']})")
+    if not due_today and not overdue_tasks:
+        print("✅ Excellent! No urgent or overdue tasks for today.")
+        
+    print("="*50)
+
+def main():
+    setup_folders()
     all_tasks, all_cats, activity_log = storage.load_state("data")
     display_summary(all_tasks)
 
@@ -61,39 +74,60 @@ def main():
             print("✔️ Task saved successfully.")
 
         elif choice == "3":
-            tid = input("Task ID to update: ")
-            new_status = input("New Status (Pending/Completed/Archived): ")
-            updated = task_ops.mark_task_status(all_tasks, tid, new_status)
-            if updated:
-                activity.log_activity("data/activity.log", {
-                    "action": "UPDATE", "task_id": tid, "summary": f"Status: {new_status}"
-                })
-                storage.save_state("data", all_tasks, all_cats, activity_log)
-                print("✔️ Status updated.")
-            else:
-                print("❌ Task not found.")
-
-        elif choice == "4":
-            tid = input("Task ID to delete: ")
-            confirm = input(f"Are you sure you want to delete Task {tid}? (Y/N): ")
-            if confirm.lower() == 'y':
-                if task_ops.delete_task(all_tasks, tid):
+            try:
+                tid = input("Task ID to update: ")
+                new_status = input("New Status (Pending/Completed/Archived): ")
+                updated = task_ops.mark_task_status(all_tasks, tid, new_status)
+                if updated:
                     activity.log_activity("data/activity.log", {
-                        "action": "DELETE", "task_id": tid, "summary": "Task deleted"
+                        "action": "UPDATE", "task_id": tid, "summary": f"Status: {new_status}"
                     })
                     storage.save_state("data", all_tasks, all_cats, activity_log)
-                    print("🗑️ Task deleted.")
+                    print("✔️ Status updated.")
                 else:
                     print("❌ Task not found.")
+            except ValueError:
+                print("⚠️ Please enter a valid numerical ID.")
+
+        elif choice == "4":
+            try:
+                tid = input("Task ID to delete: ")
+                confirm = input(f"Are you sure you want to delete Task {tid}? (Y/N): ")
+                if confirm.lower() == 'y':
+                    if task_ops.delete_task(all_tasks, tid):
+                        activity.log_activity("data/activity.log", {
+                            "action": "DELETE", "task_id": tid, "summary": "Task deleted"
+                        })
+                        storage.save_state("data", all_tasks, all_cats, activity_log)
+                        print("🗑️ Task deleted.")
+                    else:
+                        print("❌ Task not found.")
+            except ValueError:
+                print("⚠️ Please enter a valid number")
 
         elif choice == "5":
-            cat_name = input("New Category Name: ")
-            new_cat = cat_ops.add_category(all_cats, {"name": cat_name})
-            if new_cat:
-                storage.save_state("data", all_tasks, all_cats, activity_log)
-                print(f"✔️ Category '{cat_name}' added.")
+            if not all_cats:
+                print("No categories found.")
             else:
-                print("❌ Category already exists.")
+                print("Current Categories:")
+                for idx, cat in enumerate(all_cats, 1):
+                    name = cat.get('name', 'Unknown')
+                    print(f"{idx}. {name}")
+            print("\n[A] Add New Category")
+            print("[B] Back to Main Menu")
+            
+            sub_choice = input("\nYour Choice: ").upper()
+            
+            if sub_choice == "A":
+                cat_name = input("New Category Name: ")
+                new_cat = cat_ops.add_category(all_cats, {"name": cat_name})
+                if new_cat:
+                    storage.save_state("data", all_tasks, all_cats, activity_log)
+                    print(f"✔️ Category '{cat_name}' added successfully.")
+                else:
+                    print("❌ Category already exists.")
+            elif sub_choice == "B":
+                continue       
 
         elif choice == "6":
             stats = activity.productivity_stats(all_tasks, activity_log)
@@ -106,5 +140,6 @@ def main():
             storage.backup_state("data", "backups")
             print("💾 Data backed up. Goodbye!")
             break
+
 if __name__ == "__main__":
     main()
