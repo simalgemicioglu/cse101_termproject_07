@@ -33,7 +33,7 @@ def load_activity(log_path: str) -> list:
 def productivity_stats(tasks: list, activity_log: list) -> dict:
     total = len(tasks)
     completed = [t for t in tasks if t['status'] == 'Completed']
-    efficiency = ((completed) / total * 100) if total > 0 else 0
+    efficiency = (len(completed) / total * 100) if total > 0 else 0
     
     return {
         "total_tasks": total,
