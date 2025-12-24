@@ -10,5 +10,29 @@
         "name": "ıkl",
         "description": "",
         "color_code": "White"
+    },
+    {
+        "id": "3",
+        "name": "aile",
+        "description": "",
+        "color_code": "White"
+    },
+    {
+        "id": "4",
+        "name": "yeni kategori",
+        "description": "",
+        "color_code": "White"
+    },
+    {
+        "id": "5",
+        "name": "5",
+        "description": "",
+        "color_code": "White"
+    },
+    {
+        "id": "6",
+        "name": "deneme yenii",
+        "description": "",
+        "color_code": "White"
     }
 ]
