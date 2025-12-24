@@ -75,3 +75,17 @@ def summarize_by_category(tasks: list) -> dict:
 def upcoming_tasks(tasks: list, within_days: int) -> list:
     limit_date = (datetime.now() + timedelta(days=within_days)).isoformat()
     return [t for t in tasks if t['due_date'] and t['due_date'] <= limit_date]
+
+def check_overdue_tasks(tasks: list) -> list:
+    today = datetime.now().strftime("%Y-%m-%d")
+    overdue_found = []
+    
+    for task in tasks:
+        if task['status'] not in ['Completed', 'Archived'] and task.get('due_date'):
+            if task['due_date'] < today:
+                if task['status'] != 'Overdue':
+                    task['status'] = 'Overdue'
+                    task['updated_at'] = datetime.now().isoformat()
+                overdue_found.append(task)
+                
+    return overdue_found
