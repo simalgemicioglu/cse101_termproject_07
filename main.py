@@ -35,7 +35,8 @@ def display_summary(tasks, overdue_tasks):
 def main():
     setup_folders()
     all_tasks, all_cats, activity_log = storage.load_state("data")
-    display_summary(all_tasks)
+    overdue_tasks = task_ops.check_overdue_tasks(all_tasks)
+    display_summary(all_tasks, overdue_tasks)
 
     while True:
         print("\n--- 🛠️ TASK MANAGEMENT SYSTEM ---")
