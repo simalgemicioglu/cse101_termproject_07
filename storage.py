@@ -8,7 +8,7 @@ CATEGORY_FILENAME = "categories.json"
 LOG_FILENAME = "activity.log"
 
 def load_state(base_dir: str) -> tuple[list, list, list]:
-    """Tüm sistem verilerini yükler."""
+    
     tasks_path = os.path.join(base_dir, TASK_FILENAME)
     cats_path = os.path.join(base_dir, CATEGORY_FILENAME)
     log_path = os.path.join(base_dir, LOG_FILENAME)
