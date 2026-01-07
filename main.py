@@ -9,12 +9,6 @@ def setup_folders():
     os.makedirs("data", exist_ok=True)
     os.makedirs("backups", exist_ok=True)
 
-def main():
-    setup_folders()
-    all_tasks, all_cats, activity_log = storage.load_state("data")
-    overdue_tasks = task_ops.check_overdue_tasks(all_tasks)
-    display_summary(all_tasks, overdue_tasks) 
-
 def display_summary(tasks, overdue_tasks):
     today = datetime.now().strftime("%Y-%m-%d")
     due_today = [t for t in tasks if t.get('due_date') == today and t['status'] != 'Completed']
