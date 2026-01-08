@@ -54,23 +54,12 @@ def add_subtask(tasks: list, task_id: str, subtask_data: dict) -> dict:
             return task
     return None
 
-def search_tasks(tasks: list, query: str) -> list:
-    query = query.lower()
-    return [t for t in tasks if query in t['title'].lower() or query in t['description'].lower()]
-
 def delete_task(tasks: list, task_id: str) -> bool:
     for i, task in enumerate(tasks):
         if task['id'] == task_id:
             tasks.pop(i)
             return True
     return False
-
-def summarize_by_category(tasks: list) -> dict:
-    summary = {}
-    for t in tasks:
-        cat = t['category']
-        summary[cat] = summary.get(cat, 0) + 1
-    return summary
 
 def upcoming_tasks(tasks: list, within_days: int) -> list:
     limit_date = (datetime.now() + timedelta(days=within_days)).isoformat()
