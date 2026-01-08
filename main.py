@@ -1,3 +1,4 @@
+from asyncio import current_task
 import storage
 import os
 import tasks as task_ops
@@ -36,15 +37,16 @@ def main():
 
     while True:
         print("\n--- 🛠️ TASK MANAGEMENT SYSTEM ---")
-        print("1. List Tasks")
-        print("2. Add New Task")
-        print("3. Update Task Status (Complete/Archive)")
-        print("4. Delete Task")
-        print("5. Category Management")
-        print("6. Statistics & Reports")
-        print("7. Backup & Exit")
+        print("1. 📋 List Tasks")
+        print("2. 🆕 Add New Task")
+        print("3. 📝 Update Task Status (Complete/Archive)")
+        print("4. 🗑️ Delete Task")
+        print("5. 🗂️ Category Management")
+        print("6. 📈 Statistics & Reports")
+        print("7. ➕ Add Subtask")
+        print("8. 🚪 Backup & Exit")
         
-        choice = input("\nYour Choice (1-7): ")
+        choice = input("\nYour Choice (1-8): ")
 
         if choice == "1":
             print(f"\n{'ID':<4} | {'TITLE':<20} | {'STATUS':<12} | {'PRIORITY':<8}")
@@ -90,7 +92,11 @@ def main():
             })
             storage.save_state("data", all_tasks, all_cats, activity_log)
             print(f"\n✅ Task '{title}' successfully added to '{selected_category}'!")
-
+            for t in filtered_tasks:
+                print(f"[{t['id']}] {t['title']} ({t['status']}) - Due: {t['due_date']}")
+                for sub in t.get('subtasks', []):
+                    sub_status = "✅" if sub['status'] == "Completed" else "⭕"
+                    print(f"    └── {sub_status} {sub['title']}")
         elif choice == "3":
             try:
                 tid = input("Task ID to update: ")
@@ -208,6 +214,41 @@ def main():
             print(f"Efficiency Rate: %{stats['efficiency']:.2f}")
 
         elif choice == "7":
+            print("\n--- Select a Category ---")
+            for i, cat in enumerate(all_cats, 1):
+                print(f"{i}) {cat['name']}")
+
+            try:
+                cat_idx = int(input("Select category number: ")) - 1
+                selected_cat_name = all_cats[cat_idx]['name']
+                filtered = [t for t in all_tasks if t['category'] == selected_cat_name]
+                
+                if not filtered:
+                    print(f"❌ No tasks found in category '{selected_cat_name}'.")
+                else:
+                    print(f"\n--- Tasks in '{selected_cat_name}' ---")
+                    for t in filtered:
+                        print(f"ID: {t['id']} | Title: {t['title']}")
+                    task_id = input("Enter the Parent Task ID: ")
+                    parent_task = next((t for t in all_tasks if t['id'] == task_id), None)
+                    if parent_task:
+                        sub_title = input("Enter subtask title: ")
+                        subtask_data = {
+                            "title": sub_title,
+                            "status": "Pending",
+                            "created_at": datetime.now().isoformat()
+                        }
+                        updated_task = task_ops.add_subtask(all_tasks, task_id, subtask_data)
+                        if updated_task:
+                            activity_log.append(f"{datetime.now().isoformat()} | SUBTASK_ADDED | Task ID: {task_id} | Sub: {sub_title}")
+                            storage.save_state("data", all_tasks, all_cats, activity_log)
+                            print(f"✅ Subtask '{sub_title}' added to Task {task_id}!")
+                    else:
+                        print("❌ Parent Task ID not found!")
+            except (ValueError, IndexError):
+                print("⚠️ Invalid category selection!")
+
+        elif choice == "8":
             storage.backup_state("data", "backups")
             print("💾 Data backed up. Goodbye!")
             break
