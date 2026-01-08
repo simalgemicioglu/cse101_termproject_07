@@ -95,13 +95,32 @@ def main():
             storage.save_state("data", all_tasks, all_cats, activity_log)
             print(f"📌 [ID: {new_t['id']}] {new_t['title']} (Status: {new_t['status']})")
         elif choice == "3":
+            print("\n--- Select Category to Update Task ---")
+            for i, cat in enumerate(all_cats, 1):
+                print(f"{i}) {cat['name']}")
             try:
-                tid = input("Task ID to update: ")
-                new_status = input("New Status (Pending/Completed/Archived): ")
-                updated = task_ops.mark_task_status(all_tasks, tid, new_status)
+                cat_idx = int(input("\nSelect category number: ")) - 1
+                selected_cat_name = all_cats[cat_idx]['name']
+
+                filtered = [t for t in all_tasks if t.get('category') == selected_cat_name]
+                if not filtered:
+                    print(f"ℹ️ No tasks found in category '{selected_cat_name}'.")           
+                else:
+                    print(f"\n--- Tasks in '{selected_cat_name}' ---")
+                    for t in filtered:
+                        print(f"ID: {t['id']} | Title: {t['title']} | Current Status: {t['status']}")
+            
+            
+                    tid = input("Task ID to update: ")
+                    if any(t['id'] == tid for t in filtered):
+                        print("New Status Options: [Pending, Completed, Archived]")
+                        new_status = input("Enter New Status: ").capitalize()
+                        updated = task_ops.mark_task_status(all_tasks, tid, new_status)
                 if updated:
                     activity.log_activity("data/activity.log", {
-                        "action": "UPDATE", "task_id": tid, "summary": f"Status: {new_status}"
+                        "action": "UPDATE",
+                        "task_id": tid,
+                        "summary": f"Status: {new_status}"
                     })
                     storage.save_state("data", all_tasks, all_cats, activity_log)
                     print("✔️ Status updated.")
