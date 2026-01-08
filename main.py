@@ -1,11 +1,9 @@
-from asyncio import current_task
-import storage
 import os
+from datetime import datetime
+import storage
 import tasks as task_ops
 import categories as cat_ops
 import activity
-from datetime import datetime
-
 def setup_folders():
     os.makedirs("data", exist_ok=True)
     os.makedirs("backups", exist_ok=True)
