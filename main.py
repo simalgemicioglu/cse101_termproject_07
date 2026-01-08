@@ -225,9 +225,17 @@ def main():
         elif choice == "6":
             stats = activity.productivity_stats(all_tasks, activity_log)
             print(f"\n📊 PRODUCTIVITY REPORT")
+            print("-" * 25)
             print(f"Total Tasks: {stats['total_tasks']}")
             print(f"Completed: {stats['completed_count']}")
             print(f"Efficiency Rate: %{stats['efficiency']:.2f}")
+            print("-" * 25)
+            try:
+                report_file = f"report_{datetime.now().strftime('%Y%m%d')}.json"
+                file_path = activity.export_report(stats, report_file)
+                print(f"📁 Detailed report saved to: {file_path}")
+            except Exception as e:
+                print(f"⚠️ Could not export report: {e}")
 
         elif choice == "7":
             print("\n--- Select a Category ---")
