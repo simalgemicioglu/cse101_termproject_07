@@ -54,7 +54,9 @@ def main():
             for t in all_tasks:
                 status_icon = "✅" if t['status'] == "Completed" else "⏳"
                 print(f"{t['id']:<4} | {t['title']:<20} | {status_icon} {t['status']:<9} | {t['priority']:<8}")
-
+                for sub in t.get('subtasks', []):
+                    sub_icon = "✔️" if sub['status'] == "Completed" else "○"
+                    print(f"     └── {sub_icon} {sub['title']}")
         elif choice == "2":
             if not all_cats:
                 print("⚠️  No categories found. Adding to 'General'.")
@@ -91,12 +93,7 @@ def main():
                 "action": "CREATE", "task_id": new_t['id'], "summary": f"Added: {title}"
             })
             storage.save_state("data", all_tasks, all_cats, activity_log)
-            print(f"\n✅ Task '{title}' successfully added to '{selected_category}'!")
-            for t in filtered_tasks:
-                print(f"[{t['id']}] {t['title']} ({t['status']}) - Due: {t['due_date']}")
-                for sub in t.get('subtasks', []):
-                    sub_status = "✅" if sub['status'] == "Completed" else "⭕"
-                    print(f"    └── {sub_status} {sub['title']}")
+            print(f"📌 [ID: {new_t['id']}] {new_t['title']} (Status: {new_t['status']})")
         elif choice == "3":
             try:
                 tid = input("Task ID to update: ")
@@ -177,7 +174,7 @@ def main():
                 sub_choice = input("\nYour Choice: ").upper()
                 
                 if sub_choice == "B":
-                    break 
+                    continue 
                 
                 elif sub_choice == "A":
                     cat_name = input("New Category Name: ")
